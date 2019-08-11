@@ -1,5 +1,8 @@
 *
 
+!*/
+build/
+
 !*.hpp
 !*.cpp
 !CMakeLists.txt
