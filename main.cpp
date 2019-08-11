@@ -53,6 +53,14 @@ void draw_mandelbrot() {
   }
 }
 
+void compute_viewport() {
+  width = static_cast<float>(screen_width) / screen_height * height;
+  x_min = origin_x - 0.5 * width;
+  y_min = origin_y - 0.5 * height;
+  x_max = origin_x + 0.5 * width;
+  y_max = origin_y + 0.5 * height;
+}
+
 int main() {
   // create the window
   sf::Window window({screen_width, screen_height}, "OpenGL", sf::Style::Default,
@@ -66,9 +74,16 @@ int main() {
   glClearColor(0, 0, 0, 1);
   draw_mandelbrot();
 
+  int old_mouse_x = 0;
+  int old_mouse_y = 0;
+
   // run the main loop
   bool running = true;
   while (running) {
+    const auto mouse_pos = sf::Mouse::getPosition(window);
+    const int mouse_x = mouse_pos.x;
+    const int mouse_y = mouse_pos.y;
+
     // handle events
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -79,15 +94,26 @@ int main() {
         // adjust the viewport when the window is resized
         screen_width = event.size.width;
         screen_height = event.size.height;
-        width = static_cast<float>(screen_width) / screen_height * height;
-        x_min = origin_x - 0.5 * width;
-        y_min = origin_y - 0.5 * height;
-        x_max = origin_x + 0.5 * width;
-        y_max = origin_y + 0.5 * height;
+        compute_viewport();
         glViewport(0, 0, screen_width, screen_height);
         pixel_buffer.resize(screen_width * screen_height);
         draw_mandelbrot();
       }
+    }
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+      const auto delta_x =
+          static_cast<float>(mouse_x - old_mouse_x) / screen_width * width;
+      const auto delta_y =
+          static_cast<float>(mouse_y - old_mouse_y) / screen_height * height;
+
+      origin_x -= delta_x;
+      origin_y += delta_y;
+
+      compute_viewport();
+      draw_mandelbrot();
+
+      // cout << "move\t" << delta_x << ", " ;
     }
 
     // clear the buffers
@@ -99,5 +125,8 @@ int main() {
 
     // end the current frame (internally swaps the front and back buffers)
     window.display();
+
+    old_mouse_x = mouse_x;
+    old_mouse_y = mouse_y;
   }
 }
