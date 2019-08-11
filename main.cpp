@@ -2,7 +2,9 @@
 #include <SFML/Window.hpp>
 
 #include <array>
+#include <cmath>
 #include <complex>
+#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -27,23 +29,22 @@ void draw_mandelbrot() {
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < width; ++i) {
       const auto index = j * width + i;
-      constexpr float x_min = -2;
-      constexpr float y_min = -1;
-      constexpr float x_max = 1;
+      constexpr float x_min = -0.5;
+      constexpr float y_min = 0.5;
+      constexpr float x_max = 0.5;
       constexpr float y_max = 1;
       const auto x = static_cast<float>(i) / width;
       const auto y = static_cast<float>(j) / height;
-      complex<float> c{(x_max - x_min) * x + x_min,
-                       (y_max - y_min) * y + y_min};
+      complex<double> c{(x_max - x_min) * x + x_min,
+                        (y_max - y_min) * y + y_min};
       auto z = c;
 
       constexpr int max_it = 1 << 10;
-      constexpr int step = 1 << 4;
       int it = 0;
-      for (; (norm(z) < 4) && (it < max_it); it += step)
-        for (int k = 0; k < step; ++k) z = z * z + c;
-      pixel_buffer[index] =
-          (it == max_it) ? (color{0, 0, 0, 1}) : (color{1, 1, 1, 1});
+      for (; (norm(z) < 4) && (it < max_it); ++it) z = z * z + c;
+
+      auto scale = log(1.f + it) / log(1.f + max_it);
+      pixel_buffer[index] = {scale, scale, scale, 1};
     }
   }
 }

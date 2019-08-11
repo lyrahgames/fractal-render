@@ -17,7 +17,7 @@ target_compile_features(fractal-render
 )
 target_compile_options(fractal-render
   PRIVATE
-    -O3 -march=native
+    -O3 -march=native -ftree-vectorize
 )
 if (OPENMP_CXX_FOUND)
   target_link_libraries(fractal-render
