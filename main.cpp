@@ -1,20 +1,43 @@
-#include <SFML/Graphics.hpp>
+#include <SFML/OpenGL.hpp>
+#include <SFML/Window.hpp>
 
 int main() {
-  sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-  sf::CircleShape shape(100.f);
-  shape.setFillColor(sf::Color::Green);
+  // create the window
+  sf::Window window(sf::VideoMode(800, 600), "OpenGL", sf::Style::Default,
+                    sf::ContextSettings(32));
+  window.setVerticalSyncEnabled(true);
 
-  while (window.isOpen()) {
+  // activate the window
+  window.setActive(true);
+
+  // load resources, initialize the OpenGL states, ...
+  glClearColor(1, 0, 0, 1);
+
+  // run the main loop
+  bool running = true;
+  while (running) {
+    // handle events
     sf::Event event;
     while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed) window.close();
+      if (event.type == sf::Event::Closed) {
+        // end the program
+        running = false;
+      } else if (event.type == sf::Event::Resized) {
+        // adjust the viewport when the window is resized
+        glViewport(0, 0, event.size.width, event.size.height);
+      }
     }
 
-    window.clear();
-    window.draw(shape);
+    // clear the buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // draw...
+
+    // end the current frame (internally swaps the front and back buffers)
     window.display();
   }
+
+  // release resources...
 
   return 0;
 }
