@@ -10,15 +10,23 @@
 using namespace std;
 
 using color = array<float, 4>;
-int width = 600;
-int height = 400;
-vector<color> pixel_buffer(width* height);
+int screen_width = 600;
+int screen_height = 400;
+float origin_x = -0.5;
+float origin_y = 0;
+float height = 2;
+float width = static_cast<float>(screen_width) / screen_height * height;
+float x_min = origin_x - 0.5 * width;
+float y_min = origin_y - 0.5 * height;
+float x_max = origin_x + 0.5 * width;
+float y_max = origin_y + 0.5 * height;
+vector<color> pixel_buffer(screen_width* screen_height);
 
 void draw_gradient() {
-  for (int j = 0; j < height; ++j) {
-    for (int i = 0; i < width; ++i) {
-      const auto index = j * width + i;
-      const auto scale = static_cast<float>(j) / height;
+  for (int j = 0; j < screen_height; ++j) {
+    for (int i = 0; i < screen_width; ++i) {
+      const auto index = j * screen_width + i;
+      const auto scale = static_cast<float>(j) / screen_height;
       pixel_buffer[index] = {scale, scale, scale, 1};
     }
   }
@@ -26,15 +34,11 @@ void draw_gradient() {
 
 void draw_mandelbrot() {
 #pragma omp parallel for schedule(dynamic)
-  for (int j = 0; j < height; ++j) {
-    for (int i = 0; i < width; ++i) {
-      const auto index = j * width + i;
-      constexpr float x_min = -0.5;
-      constexpr float y_min = 0.5;
-      constexpr float x_max = 0.5;
-      constexpr float y_max = 1;
-      const auto x = static_cast<float>(i) / width;
-      const auto y = static_cast<float>(j) / height;
+  for (int j = 0; j < screen_height; ++j) {
+    for (int i = 0; i < screen_width; ++i) {
+      const auto index = j * screen_width + i;
+      const auto x = static_cast<float>(i) / screen_width;
+      const auto y = static_cast<float>(j) / screen_height;
       complex<double> c{(x_max - x_min) * x + x_min,
                         (y_max - y_min) * y + y_min};
       auto z = c;
@@ -51,7 +55,7 @@ void draw_mandelbrot() {
 
 int main() {
   // create the window
-  sf::Window window({width, height}, "OpenGL", sf::Style::Default,
+  sf::Window window({screen_width, screen_height}, "OpenGL", sf::Style::Default,
                     sf::ContextSettings(32));
   window.setVerticalSyncEnabled(true);
 
@@ -73,10 +77,15 @@ int main() {
         running = false;
       } else if (event.type == sf::Event::Resized) {
         // adjust the viewport when the window is resized
-        glViewport(0, 0, event.size.width, event.size.height);
-        width = event.size.width;
-        height = event.size.height;
-        pixel_buffer.resize(width * height);
+        screen_width = event.size.width;
+        screen_height = event.size.height;
+        width = static_cast<float>(screen_width) / screen_height * height;
+        x_min = origin_x - 0.5 * width;
+        y_min = origin_y - 0.5 * height;
+        x_max = origin_x + 0.5 * width;
+        y_max = origin_y + 0.5 * height;
+        glViewport(0, 0, screen_width, screen_height);
+        pixel_buffer.resize(screen_width * screen_height);
         draw_mandelbrot();
       }
     }
@@ -85,7 +94,8 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw...
-    glDrawPixels(width, height, GL_RGBA, GL_FLOAT, pixel_buffer.data());
+    glDrawPixels(screen_width, screen_height, GL_RGBA, GL_FLOAT,
+                 pixel_buffer.data());
 
     // end the current frame (internally swaps the front and back buffers)
     window.display();
