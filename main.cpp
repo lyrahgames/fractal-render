@@ -1,6 +1,7 @@
 #include <SFML/OpenGL.hpp>
 #include <SFML/Window.hpp>
 
+// #include <algorithm>
 #include <array>
 #include <cmath>
 #include <complex>
@@ -39,8 +40,8 @@ void draw_mandelbrot() {
       const auto index = j * screen_width + i;
       const auto x = static_cast<float>(i) / screen_width;
       const auto y = static_cast<float>(j) / screen_height;
-      complex<double> c{(x_max - x_min) * x + x_min,
-                        (y_max - y_min) * y + y_min};
+      complex<float> c{(x_max - x_min) * x + x_min,
+                       (y_max - y_min) * y + y_min};
       auto z = c;
 
       constexpr int max_it = 1 << 10;
@@ -97,6 +98,11 @@ int main() {
         compute_viewport();
         glViewport(0, 0, screen_width, screen_height);
         pixel_buffer.resize(screen_width * screen_height);
+        draw_mandelbrot();
+      } else if (event.type == sf::Event::MouseWheelMoved) {
+        height *= exp(-event.mouseWheel.delta * 0.05f);
+        height = clamp(height, 1e-4f, 6.f);
+        compute_viewport();
         draw_mandelbrot();
       }
     }
