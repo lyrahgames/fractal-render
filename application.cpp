@@ -1,5 +1,7 @@
 #include <application.hpp>
 
+using namespace std;
+
 application::application() : pixel_buffer(screen_width * screen_height) {
   // Turn on vertical synchronisation for constant 60 FPS on monitor. Reduces
   // artifacts on screen due to human vision.
@@ -56,7 +58,7 @@ void application::execute() {
       const auto x = static_cast<float>(mouse_x) / screen_width * width + x_min;
       const auto y =
           static_cast<float>(mouse_y) / screen_height * height + y_min;
-      julia_coeff = {x, y};
+      js.coeff = {x, y};
       compute_viewport();
       draw_julia();
     }
@@ -120,22 +122,15 @@ void application::draw_julia() {
       const auto y = static_cast<float>(j) / screen_height;
       complex<float> z{(x_max - x_min) * x + x_min,
                        (y_max - y_min) * y + y_min};
-      // complex<float> c{0.5, -0.2};
 
-      constexpr int max_it = 1 << 10;
-      int it = 0;
-      for (; (norm(z) < 4) && (it < max_it); ++it)
-        // z = julia_coeff + exp(8.0f * log(z));
-        z = z * z * z + julia_coeff;
-
-      auto scale = log(1.f + it) / log(1.f + max_it);
+      auto scale = log(1.f + js.iteration(z)) / log(1.f + js.max_iteration);
       pixel_buffer[index] = {scale, scale, scale, 1};
     }
   }
 }
 
 void application::animate_julia(float dt) {
-  julia_coeff *= complex{cos(dt), sin(dt)};
+  js.coeff *= complex{cos(dt), sin(dt)};
 }
 
 void application::compute_viewport() {

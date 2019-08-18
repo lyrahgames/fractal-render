@@ -9,6 +9,7 @@ add_executable(fractal-render
   main.cpp
   application.hpp
   application.cpp
+  julia_set.hpp
 )
 target_include_directories(fractal-render
   PRIVATE
