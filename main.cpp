@@ -3,6 +3,7 @@
 
 // #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -22,6 +23,8 @@ float y_min = origin_y - 0.5 * height;
 float x_max = origin_x + 0.5 * width;
 float y_max = origin_y + 0.5 * height;
 vector<color> pixel_buffer(screen_width* screen_height);
+
+auto start_time = chrono::high_resolution_clock::now();
 
 complex<float> julia_coeff{};
 
@@ -77,6 +80,12 @@ void draw_julia() {
   }
 }
 
+void animate_julia() {
+  auto current = chrono::high_resolution_clock::now();
+  auto time = chrono::duration<float>{current - start_time}.count();
+  julia_coeff = {cos(time), sin(time)};
+}
+
 void compute_viewport() {
   width = static_cast<float>(screen_width) / screen_height * height;
   x_min = origin_x - 0.5 * width;
@@ -88,15 +97,15 @@ void compute_viewport() {
 int main() {
   // create the window
   sf::Window window({screen_width, screen_height}, "OpenGL", sf::Style::Default,
-                    sf::ContextSettings(32));
+                    sf::ContextSettings{32});
+
+  // Turn on vertical synchronisation for constant 60 FPS on monitor. Reduces
+  // artifacts on screen due to human vision.
   window.setVerticalSyncEnabled(true);
 
-  // activate the window
+  // Activate the window. Change OpenGL context to use this window. Call every
+  // time you want to use another window.
   window.setActive(true);
-
-  // load resources, initialize the OpenGL states, ...
-  glClearColor(0, 0, 0, 1);
-  draw_mandelbrot();
 
   int old_mouse_x = 0;
   int old_mouse_y = 0;
@@ -141,8 +150,6 @@ int main() {
 
       compute_viewport();
       draw_julia();
-
-      // cout << "move\t" << delta_x << ", " ;
     }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
@@ -154,13 +161,16 @@ int main() {
       draw_julia();
     }
 
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+      animate_julia();
+      draw_julia();
+    }
+
     // clear the buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // draw...
     glDrawPixels(screen_width, screen_height, GL_RGBA, GL_FLOAT,
                  pixel_buffer.data());
-
     // end the current frame (internally swaps the front and back buffers)
     window.display();
 
