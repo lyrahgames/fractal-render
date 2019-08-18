@@ -8,6 +8,11 @@ find_package(OpenMP)
 add_executable(fractal-render
   main.cpp
   application.hpp
+  application.cpp
+)
+target_include_directories(fractal-render
+  PRIVATE
+    .
 )
 target_link_libraries(fractal-render
   PRIVATE
