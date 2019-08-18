@@ -114,6 +114,8 @@ void application::draw_mandelbrot() {
 }
 
 void application::draw_julia() {
+  float max_distance = 0.0f;
+
 #pragma omp parallel for schedule(dynamic)
   for (int j = 0; j < screen_height; ++j) {
     for (int i = 0; i < screen_width; ++i) {
@@ -123,8 +125,26 @@ void application::draw_julia() {
       complex<float> z{(x_max - x_min) * x + x_min,
                        (y_max - y_min) * y + y_min};
 
-      auto scale = log(1.f + js.iteration(z)) / log(1.f + js.max_iteration);
+      auto distance = js.distance(z);
+      max_distance = max(max_distance, distance);
+      // auto scale = log(1.f + js.iteration(z)) / log(1.f + js.max_iteration);
+      // auto scale = 1 - sqrt(tanh(distance));
+      // auto scale = distance;
+      // scale = log(1.0f + scale) / log(2.0f);
+      // auto scale = js.distance(z);
+      auto scale = log(1.0f + js.distance(z));
+      // auto scale = (js.distance(z) < 1e-4f) ? (1.0f) : (0.0f);
       pixel_buffer[index] = {scale, scale, scale, 1};
+    }
+  }
+
+#pragma omp parallel for schedule(static)
+  for (int j = 0; j < screen_height; ++j) {
+    for (int i = 0; i < screen_width; ++i) {
+      const auto index = j * screen_width + i;
+      // for (int k = 0; k < 3; ++k) pixel_buffer[index][k] /= max_distance;
+      for (int k = 0; k < 3; ++k)
+        pixel_buffer[index][k] /= log(1.0f + max_distance);
     }
   }
 }
