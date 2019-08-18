@@ -25,6 +25,7 @@ float y_max = origin_y + 0.5 * height;
 vector<color> pixel_buffer(screen_width* screen_height);
 
 auto start_time = chrono::high_resolution_clock::now();
+auto old_time = start_time;
 
 complex<float> julia_coeff{};
 
@@ -80,11 +81,7 @@ void draw_julia() {
   }
 }
 
-void animate_julia() {
-  auto current = chrono::high_resolution_clock::now();
-  auto time = chrono::duration<float>{current - start_time}.count();
-  julia_coeff = {cos(time), sin(time)};
-}
+void animate_julia(float dt) { julia_coeff *= complex{cos(dt), sin(dt)}; }
 
 void compute_viewport() {
   width = static_cast<float>(screen_width) / screen_height * height;
@@ -113,6 +110,7 @@ int main() {
   // run the main loop
   bool running = true;
   while (running) {
+    const auto current_time = chrono::high_resolution_clock::now();
     const auto mouse_pos = sf::Mouse::getPosition(window);
     const int mouse_x = mouse_pos.x;
     const int mouse_y = mouse_pos.y;
@@ -162,7 +160,7 @@ int main() {
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-      animate_julia();
+      animate_julia(chrono::duration<float>(current_time - old_time).count());
       draw_julia();
     }
 
@@ -176,5 +174,6 @@ int main() {
 
     old_mouse_x = mouse_x;
     old_mouse_y = mouse_y;
+    old_time = current_time;
   }
 }
