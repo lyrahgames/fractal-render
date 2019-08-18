@@ -5,7 +5,10 @@ find_package(SFML COMPONENTS graphics REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenMP)
 
-add_executable(fractal-render main.cpp)
+add_executable(fractal-render
+  main.cpp
+  application.hpp
+)
 target_link_libraries(fractal-render
   PRIVATE
     sfml-graphics
