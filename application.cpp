@@ -35,7 +35,7 @@ void application::execute() {
         draw_julia();
       } else if (event.type == sf::Event::MouseWheelMoved) {
         height *= exp(-event.mouseWheel.delta * 0.05f);
-        height = clamp(height, 1e-4f, 6.f);
+        height = clamp(height, 1e-6f, 6.f);
         compute_viewport();
         draw_julia();
       }
@@ -128,11 +128,11 @@ void application::draw_julia() {
       auto distance = js.distance(z);
       max_distance = max(max_distance, distance);
       // auto scale = log(1.f + js.iteration(z)) / log(1.f + js.max_iteration);
-      // auto scale = 1 - sqrt(tanh(distance));
+      auto scale = sqrt(tanh(1e2f * distance / height));
       // auto scale = distance;
       // scale = log(1.0f + scale) / log(2.0f);
       // auto scale = js.distance(z);
-      auto scale = log(1.0f + js.distance(z));
+      // auto scale = log(1.0f + js.distance(z));
       // auto scale = (js.distance(z) < 1e-4f) ? (1.0f) : (0.0f);
       pixel_buffer[index] = {scale, scale, scale, 1};
     }
@@ -142,9 +142,8 @@ void application::draw_julia() {
   for (int j = 0; j < screen_height; ++j) {
     for (int i = 0; i < screen_width; ++i) {
       const auto index = j * screen_width + i;
-      // for (int k = 0; k < 3; ++k) pixel_buffer[index][k] /= max_distance;
       for (int k = 0; k < 3; ++k)
-        pixel_buffer[index][k] /= log(1.0f + max_distance);
+        pixel_buffer[index][k] /= sqrt(tanh(1e2f * max_distance / height));
     }
   }
 }
