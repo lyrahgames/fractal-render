@@ -3,6 +3,10 @@
 !*/
 build/
 
+!build2
+!build2/**
+!build2file
+
 !*.hpp
 !*.cpp
 !CMakeLists.txt

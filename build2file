@@ -1,0 +1,5 @@
+cxx.coptions += -O3 -march=native -fopenmp -lpthread
+
+import libs = sfml-graphics%lib{sfml-graphics}
+
+exe{fractal-render}: hxx{*} cxx{*} $libs

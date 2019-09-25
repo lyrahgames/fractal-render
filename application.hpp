@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SFML/OpenGL.hpp>
-#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 
 #include <array>
 #include <chrono>
@@ -53,10 +52,13 @@ class application {
   // std::complex<float> julia_coeff{};
   julia_set js{};
 
-  sf::Window window{{screen_width, screen_height},
-                    "OpenGL",
-                    sf::Style::Default,
-                    sf::ContextSettings{32}};
+  sf::RenderWindow window{{screen_width, screen_height},
+                          "OpenGL",
+                          sf::Style::Default,
+                          sf::ContextSettings{32}};
+
+  sf::Texture texture;
+  sf::Sprite sprite;
 
   int old_mouse_x = 0;
   int old_mouse_y = 0;

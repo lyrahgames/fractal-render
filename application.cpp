@@ -12,6 +12,8 @@ application::application() : pixel_buffer(screen_width * screen_height) {
 }
 
 void application::execute() {
+  std::vector<uint8_t> pixels;
+
   bool running = true;
   while (running) {
     const auto current_time = chrono::high_resolution_clock::now();
@@ -30,9 +32,13 @@ void application::execute() {
         screen_width = event.size.width;
         screen_height = event.size.height;
         compute_viewport();
-        glViewport(0, 0, screen_width, screen_height);
+        // glViewport(0, 0, screen_width, screen_height);
         pixel_buffer.resize(screen_width * screen_height);
         draw_julia();
+
+        texture.create(screen_width, screen_height);
+        sprite.setTexture(texture);
+        pixels.resize(screen_width * screen_height * 4);
       } else if (event.type == sf::Event::MouseWheelMoved) {
         height *= exp(-event.mouseWheel.delta * 0.02f);
         height = clamp(height, 1e-6f, 6.f);
@@ -68,12 +74,22 @@ void application::execute() {
       draw_julia();
     }
 
-    // clear the buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // draw...
-    glDrawPixels(screen_width, screen_height, GL_RGBA, GL_FLOAT,
-                 pixel_buffer.data());
-    // end the current frame (internally swaps the front and back buffers)
+// clear the buffers
+// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// draw...
+// glDrawPixels(screen_width, screen_height, GL_RGBA, GL_FLOAT,
+// pixel_buffer.data());
+// end the current frame (internally swaps the front and back buffers)
+#pragma omp parallel for schedule(static)
+    for (int j = 0; j < screen_height; ++j) {
+      for (int i = 0; i < screen_width; ++i) {
+        for (int k = 0; k < 4; ++k)
+          pixels[4 * j * screen_width + 4 * i + k] = static_cast<uint8_t>(
+              255.0f * pixel_buffer[j * screen_width + i][k]);
+      }
+    }
+    texture.update(pixels.data());
+    window.draw(sprite);
     window.display();
 
     old_mouse_x = mouse_x;
